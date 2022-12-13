@@ -116,14 +116,9 @@ def get_att_value_theta(w, v, ci, energy_nodes,gamma,t):
 
 def attenuated_flux(g,mphi,mx, interaction='scalar'):
     w, v, ci, energy_nodes = get_eigs(g,mphi,mx,interaction,logemin,logemax)
-    print(w.shape)
-    print(v.shape)
-    print(ci.shape)
-    print(energy_nodes.shape)
-
     flux_astro=np.ones(len(energy_nodes))
     t = column_dens # one value
     flux_astro = get_att_value_theta(w, v, ci, energy_nodes, gamma, t)
     return flux_astro
 
-printSta = (attenuated_flux(3e-1,1e7,1e8))
+# attenuated_flux(3e-1,1e7,1e8)

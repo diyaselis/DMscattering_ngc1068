@@ -7,15 +7,15 @@ MeV = 1.0e6
 keV = 1.0e3
 meter = 5.06773093741e6
 cm = 1.0e-2*meter
-kg = 5.62e35
+kg = 5.62e35 # kg to eV
 gr = 1e-3*kg
 Na = 6.0221415e+23
-parsec = 3.0857e16*meter
-kpc = 1.0e3*parsec
-# kpc=3.08567758147e16 #kpc -> km
+# parsec = 3.0857e16*meter
+# kpc = 1.0e3*parsec
+kpc=3.08567758147e16 #kpc -> km
 
 # NGC 1068: Basic Details
-ra_ngc = np.radians(40.6696292) # 2.7113056 
+ra_ngc = np.radians(40.6696292) # 2.7113056
 dec_ngc = np.radians(-0.0132806) # -0.0133333
 z_ngc = 0.003793
 
@@ -83,6 +83,17 @@ def get_t_NFW(ra,dec):
 column_dens_1 = NFW.get_t_NFW(ra_ngc,dec_ngc) * gr * Na /cm**2  # g/ cm^2 -> eV^3
 
 # ================= Part 2: Cosmological background ================
+# cosmological constants taken from best-fit: https://arxiv.org/pdf/1303.5076.pdf
+hubble_const = 67.11*(1e-3/kpc) #km s^-1 Mpc^-1 -> s^-1
+omega_m = 0.3175
+omega_r = 0.0
+omega_lambda = 0.6825
+omega_dm = 0.2685 # from sum Omegas = 1
+crit_dens = 5.6e-6 # GeV cm^-3
+G = 6.67e-8*gr/GeV # cm^3 s^-2 g^-1 -> cm^3 s^-2 GeV^-1
+hubble_param = lambda z: hubble_const * (omega_m*(1+z)**3 + omega_lambda)**(1/2) # removed radiation term: omega_r*(1+z)**4
+crit_dens_ngc = 3*hubble_param(z_ngc)**2 / (8*np.pi*G) # check units
 
+column_dens_2 = omega_dm*crit_dens_ngc * integrate(lambda z: 1/hubble_param(z),0,np.infty)[0] # or crit_dens at Earth?
 
 # ================= Part 3: NGC 1068 DM Halo density ==================
