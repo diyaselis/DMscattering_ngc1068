@@ -5,7 +5,7 @@ from scipy import integrate
 GeV = 1.0e9
 MeV = 1.0e6
 keV = 1.0e3
-second = 1.5192669e-15 # s to eV
+second = 1.5192669e-17 # s to eV
 meter = 5.06773093741e6 # m to eV (hbar c)
 cm = 1.0e-2*meter # cm to eV
 km = 1.0e3*meter # km to eV
@@ -104,7 +104,7 @@ print(column_dens_2)
 
 # ================= Part 3: NGC 1068 DM Halo density ==================
 
-# h =1
+# h = H_0 / 100
 # omega_0 = 1.0
 # omega_z0 = lambda z: 1 + z
 # r_vir = 1.63e-2 * (M_ngc*h/M_sun)**(1/3) * (omega_0/omega_z0(z_ngc))**(-1/3) * (1+z_ngc)
