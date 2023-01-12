@@ -6,7 +6,7 @@ GeV = 1.0e9
 MeV = 1.0e6
 keV = 1.0e3
 second = 1.5192669e-17 # s to eV
-meter = 5.06773093741e6 # m to eV (hbar c)
+meter = 5.06773093741e6 # m to 1/eV (hbar c)
 cm = 1.0e-2*meter # cm to eV
 km = 1.0e3*meter # km to eV
 kg = 5.62e35 # kg to eV
@@ -94,7 +94,7 @@ hubble_const = 67.11/Mpc #km s^-1 Mpc^-1 -> s^-1
 omega_m = 0.3175
 omega_lambda = 0.6825
 omega_dm = 0.2685
-crit_dens = 5.6e-6 # GeV cm^-3
+# crit_dens = 5.6e-6 # GeV cm^-3
 G = 6.67*1e-20 # km^3 s^-2 kg^-1
 crit_dens = 3*hubble_const**2 / (8*np.pi*G) * gr * Na /km**3 # kg km^-3 -> eV^4
 
@@ -109,17 +109,22 @@ print(column_dens_2)
 # omega_z0 = lambda z: 1 + z
 # r_vir = 1.63e-2 * (M_ngc*h/M_sun)**(1/3) * (omega_0/omega_z0(z_ngc))**(-1/3) * (1+z_ngc)
 # M_vir = (4*np.pi*200/3)*crit_dens_ngc*r_vir**3
-#
-# c = 11.7*(M_vir/(M_sun*1e11))**(-0.075)
-# delta_c = (200*c**3)/(3*(np.log(1+c)-c/(1+c)))
-#
 # r_s = (3*M_vir/(4*np.pi*200*crit_dens_ngc))**(1/3) / c
-# rho_ngc = lambda r: delta_c * crit_dens_ngc / ((r/r_s)*(1+r/r_s)**2)
-#
-# column_dens_3 = integrate.quad(lambda r: rho_ngc,0,np.infty)[0] # infinity or radius of galaxy
-# print(column_dens_3)
-column_dens_3 = 0.
+
+
+M_vir = 2.7*1e10 * M_sun # kg (M_halo)
+v_vir = 410 # km / s
+r_vir = G*M_vir / (v_vir**2) * km # km -> eV
+
+c = 11.7*(M_vir/(M_sun*1e11))**(-0.075)
+delta_c = (200*c**3)/(3*(np.log(1+c)-c/(1+c)))
+
+r_s = r_vir / c # eV
+
+rho_ngc = lambda r: delta_c * crit_dens / ((r/r_s)*(1+r/r_s)**2)
+column_dens_3 = integrate.quad(lambda r: rho_ngc(r),0,np.infty)[0] # infinity or radius of galaxy
+print(column_dens_3)
 
 # ================
 total_col_dens = column_dens_1 + column_dens_2 + column_dens_3
-print(total_col_dens)
+print('total_col_dens = ',total_col_dens)
