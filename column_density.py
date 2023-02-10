@@ -105,17 +105,16 @@ h = hubble_const / (100/Mpc) # dimensionless
 # omega_0 = 1.0 - lambda_const
 omega_0 = rho_0 / crit_dens
 omega_z0 = lambda z: 1 + z
-r_vir = 1.63e-2 * (M_ngc*h/M_sun)**(1/3) * (omega_0/omega_z0(z_ngc))**(-1/3) * (1+z_ngc) / h # kpc
-print(r_vir)
-r_vir = G*M_ngc / (v_vir**2) # cm
+# r_vir = 1.63e-2 * (M_ngc*h/M_sun)**(1/3) * (omega_0/omega_z0(z_ngc))**(-1/3) * (1+z_ngc) / h # kpc
+# print(r_vir)
+r_vir = (v_vir**2) / G*M_ngc # cm
 print(r_vir)
 
-# M_vir = (4*np.pi*200/3)*crit_dens*(r_vir * kpc)**3 # GeV
+M_vir = (4*np.pi*200/3)*crit_dens*(r_vir)**3 # GeV
 # print(M_vir)
 # M_vir = 2.7*1e10 * M_sun # kg (M_halo)
 # print(M_vir)
 
-quit()
 
 c = 11.7*(M_vir/(M_sun*1e11))**(-0.075)
 delta_c = (200*c**3)/(3*(np.log(1+c)-c/(1+c)))
