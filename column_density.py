@@ -7,6 +7,7 @@ import astropy.coordinates as coord
 from astropy.time import Time
 
 # natural units
+c = 1.0 # 3 * 1e10 # cm / s
 eV = 1.0
 GeV = 1.0e9
 MeV = 1.0e6
@@ -14,11 +15,11 @@ keV = 1.0e3
 second = 1.5192669e-17 # s to eV
 meter = 5.06773093741e6 # m to 1/eV
 cm = 1.0e-2*meter # cm to 1/eV
-kg = 5.62e35 # kg to eV
+kg = 5.609588e35/c**2 # kg to eV/c^2
 gr = 1e-3*kg # g to eV
 Na = 6.0221415e+23
 hbarc = 3.16152677e-26
-parsec = 3.085678e13 # pc to km
+parsec = 3.0856776e13 # pc to km
 kpc = 1e3 * parsec * 1e5 # kpc to cm
 Mpc = 1e6 * parsec
 M_sun = 2e30 #kg
@@ -29,6 +30,8 @@ ra_ngc = np.radians(40.6696292) # 2.7113056
 dec_ngc = np.radians(-0.0132806) # -0.0133333
 z_ngc = 0.003793
 M_ngc = 2.7*1e10 * M_sun # kg (M_halo)
+
+
 # =============== Part 1: Galactic contribution =================
 
 # definition of constants
@@ -77,57 +80,57 @@ def get_t_NFW():
     return t
 
 column_dens_1 = get_t_NFW()  # GeV/cm^2
-# print('CD #1: {:.4e} GeV / cm^2'.format(column_dens_1))
+print('CD #1: {:.4e} GeV / cm^2'.format(column_dens_1))
 
 
 # ================= Part 2: Cosmological background ================
 # cosmological constants taken from best-fit: https://arxiv.org/pdf/1303.5076.pdf
 # inspo from HESE paper: https://arxiv.org/pdf/1706.05746.pdf
-hubble_const = 67.11/Mpc #km s^-1 Mpc^-1 -> s^-1
+h = 0.75
+hubble_const = 100 * h / Mpc #km s^-1 Mpc^-1 -> s^-1
+# hubble_const = 67.11/Mpc #km s^-1 Mpc^-1 -> s^-1
 omega_m = 0.3175
 omega_lambda = 0.6825
 omega_dm = 0.2685
-# crit_dens = 5.6e-6 # GeV cm^-3
-G = 6.67*1e-20 * (1e15) * (GeV/kg) # km^3 s^-2 kg^-1 -> cm^3 s^-2 GeV^-1
-crit_dens = 3*hubble_const**2 / (8*np.pi*G) # GeV / cm^3
+
+G = 6.673*1e-11 * (1e6) / (kg/GeV) # m^3 s^-2 kg^-1 -> cm^3 s^-2 GeV^-1
+crit_dens = 3*hubble_const**2 / (8*np.pi*G) # GeV / cm^3   crit_dens ~ 5.6e-6 # GeV cm^-3
 
 hubble_param = lambda z: hubble_const * (omega_m*(1+z)**3 + omega_lambda)**(1/2) # removed radiation term
 column_dens_2 = omega_dm*crit_dens * integrate.quad(lambda z: 1/hubble_param(z),0,z_ngc)[0] / (1e2) # GeV * s / cm^3 to GeV / cm^2 taking c=1
-# print('CD #2: {:.4e} GeV / cm^2'.format(column_dens_2))
+print('CD #2: {:.4e} GeV / cm^2'.format(column_dens_2))
 
 # ================= Part 3: NGC 1068 DM Halo density ==================
-v_vir = 1068 * (1e5) # km / s -> cm / s
+v_vir = 1068 * (1e5) # km / s -> cm / s # https://www.aanda.org/articles/aa/pdf/2006/30/aa4883-06.pdf
 v_rot = 310 * (1e5) # km / s -> cm / s
 # v_rot = 410 * (1e5) # km / s -> cm / s
-h = hubble_const / (100/Mpc) # dimensionless
+
 # planck_length = 1.616 * 1e-35 # m
 # lambda_const = 2.888 * 1e-122 /(planck_length)**2 #
 # omega_0 = 1.0 - lambda_const
-omega_0 = rho_0 / crit_dens
-omega_z0 = lambda z: 1 + z
-# r_vir = 1.63e-2 * (M_ngc*h/M_sun)**(1/3) * (omega_0/omega_z0(z_ngc))**(-1/3) * (1+z_ngc) / h # kpc
-# print(r_vir)
-r_vir = (v_vir**2) / G*M_ngc # cm
-print(r_vir)
+omega_0 = 0.25
 
-M_vir = (4*np.pi*200/3)*crit_dens*(r_vir)**3 # GeV
-# print(M_vir)
+omega_z = lambda z: hubble_const * omega_0 * (1 + z)**3 / hubble_param(z)
+
+# NGC 1068
+r_vir = 1.63e-2 * (M_ngc*h/M_sun)**(1/3) * (omega_0/omega_z(z_ngc))**(-1/3) * (1+z_ngc)* kpc / h # cm
 # M_vir = 2.7*1e10 * M_sun # kg (M_halo)
-# print(M_vir)
+# r_vir = G*M_ngc*(kg/GeV) / (v_vir**2)  # cm
 
+M_vir = (4*np.pi*r_vir/(kpc*3))*crit_dens*(r_vir)**3 # GeV
 
-c = 11.7*(M_vir/(M_sun*1e11))**(-0.075)
-delta_c = (200*c**3)/(3*(np.log(1+c)-c/(1+c)))
-# print('r_vir', r_vir)
-r_s = r_vir / c # cm
-# print(r_s)
-r_s = (3*M_vir/(4*np.pi*200*crit_dens))**(1/3) / c # cm
-# print(r_s)
+# Milky Way
+# r_vir  = 200 * kpc # cm
+# M_vir = (4*np.pi*200/3)*crit_dens*(r_vir)**3 # GeV
+
+c_const = 11.7*(M_vir/(M_sun*1e11))**(-0.075)
+delta_c = (200*c_const**3)/(3*(np.log(1+c_const)-c_const/(1+c_const)))
+
+r_s = r_vir / c_const # cm
 
 rho_ngc = lambda r: delta_c * crit_dens / ((r/r_s)*(1+r/r_s)**2) # GeV / cm^3
 column_dens_3 = integrate.quad(lambda r: rho_ngc(r),0,np.infty, epsrel=1.0e-3, epsabs=1.0e-18)[0] # infinity or radius of galaxy
 print('CD #3: {:.4e} GeV / cm^2'.format(column_dens_3))
-
 # ================
 total_col_dens = column_dens_1 + column_dens_2 + column_dens_3
 print('total_col_dens = {:.4e} GeV/ cm^2'.format(total_col_dens))
